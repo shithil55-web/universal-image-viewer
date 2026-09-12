@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Universal Image Viewer</title>
+  <style>
+    :root{--bg:#0b1020;--card:#121a2e;--card2:#18233b;--text:#f4f7ff;--muted:#9ba8c2;--accent:#7c5cff;--border:#2a3857;--danger:#ff6b81}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at top,#1b2750 0,#0b1020 45%);color:var(--text);display:flex;justify-content:center;padding:24px}
+    .wrap{width:100%;max-width:850px}
+    header{text-align:center;padding:35px 12px 25px}
+    .logo{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#8d6bff,#4c8dff);display:grid;place-items:center;margin:0 auto 18px;font-size:30px;box-shadow:0 12px 35px #5e55ff40}
+    h1{margin:0;font-size:clamp(28px,5vw,46px);letter-spacing:-1.5px}
+    .sub{color:var(--muted);margin:12px auto 0;max-width:580px;line-height:1.6}
+    .panel{background:rgba(18,26,46,.92);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:0 20px 70px #0005}
+    .form{display:flex;gap:10px}
+    input{flex:1;min-width:0;background:#0c1427;border:1px solid var(--border);border-radius:14px;color:var(--text);padding:16px;font-size:15px;outline:none}
+    input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #7c5cff25}
+    button{border:0;border-radius:14px;background:var(--accent);color:white;padding:0 24px;font-weight:700;font-size:15px;cursor:pointer;min-height:52px}
+    button:hover{filter:brightness(1.1)} button:disabled{opacity:.6;cursor:wait}
+    .examples{color:var(--muted);font-size:13px;margin:14px 2px 0;line-height:1.7}
+    .examples code{color:#c5baff;cursor:pointer}
+    .status{margin-top:18px;display:none;padding:13px 15px;border-radius:12px;font-size:14px}
+    .status.show{display:block}.status.error{background:#ff536f18;color:#ff9aaa;border:1px solid #ff536f40}.status.info{background:#6f8cff18;color:#b8c5ff;border:1px solid #6f8cff40}
+    .result{display:none;margin-top:22px}.result.show{display:block}
+    .preview{background:#080d18;border:1px solid var(--border);border-radius:18px;min-height:220px;display:grid;place-items:center;overflow:hidden}
+    .preview img{display:block;max-width:100%;max-height:650px;object-fit:contain}
+    .meta{margin-top:14px;background:var(--card2);border-radius:15px;padding:14px;word-break:break-all}
+    .meta small{display:block;color:var(--muted);margin-bottom:6px}.meta a{color:#bfb2ff;text-decoration:none}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .actions a,.actions button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;min-height:46px;padding:0 17px;border-radius:12px;font-weight:700;font-size:14px}
+    .actions a{background:#263452;color:white}.actions button{background:#263452}
+    .footer{text-align:center;color:#65728d;font-size:12px;margin:22px 0}
+    @media(max-width:600px){body{padding:12px}.panel{padding:15px;border-radius:19px}.form{flex-direction:column}button{width:100%}.actions>*{flex:1}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="logo">🖼️</div>
+      <h1>Universal Image Viewer</h1>
+      <p class="sub">Paste an image-hosting link from ImgBB, Imgur, or a direct image URL to preview the image instantly.</p>
+    </header>
+
+    <section class="panel">
+      <div class="form">
+        <input id="urlInput" type="url" placeholder="https://ibb.co/... or https://imgur.com/..." autocomplete="off" />
+        <button id="findBtn">Find Image</button>
+      </div>
+      <div class="examples">
+        Try:
+        <code data-url="https://ibb.co/Jj5ChKhJ">ImgBB link</code>
+        ·
+        <code data-url="https://imgur.com/ugTZhc7">Imgur link</code>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <section id="result" class="result">
+        <div class="preview"><img id="imagePreview" alt="Resolved image preview" /></div>
+        <div class="meta">
+          <small>Resolved image URL</small>
+          <a id="resolvedUrl" target="_blank" rel="noopener noreferrer"></a>
+        </div>
+        <div class="actions">
+          <a id="openBtn" target="_blank" rel="noopener noreferrer">Open Original</a>
+          <a id="downloadBtn" download>Download Image</a>
+          <button id="copyBtn" type="button">Copy Image URL</button>
+        </div>
+      </section>
+    </section>
+    <div class="footer">Supports public images only. Private, deleted, expired, or protected images may not resolve.</div>
+  </main>
+
+<script>
+const input = document.getElementById('urlInput');
+const findBtn = document.getElementById('findBtn');
+const statusBox = document.getElementById('status');
+const result = document.getElementById('result');
+const preview = document.getElementById('imagePreview');
+const resolvedUrl = document.getElementById('resolvedUrl');
+const openBtn = document.getElementById('openBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const copyBtn = document.getElementById('copyBtn');
+
+function status(message, type='info'){
+  statusBox.textContent = message;
+  statusBox.className = 'status show ' + type;
+}
+function clearResult(){ result.classList.remove('show'); preview.removeAttribute('src'); }
+
+async function findImage(){
+  const url = input.value.trim();
+  clearResult();
+  if(!url){ status('Please enter an image URL.', 'error'); return; }
+  try { new URL(url); } catch { status('Please enter a valid URL.', 'error'); return; }
+
+  findBtn.disabled = true;
+  findBtn.textContent = 'Finding...';
+  status('Resolving image URL...', 'info');
+
+  try {
+    const response = await fetch('/api/resolve?url=' + encodeURIComponent(url));
+    const data = await response.json();
+    if(!response.ok || !data.success) throw new Error(data.error || 'Image could not be resolved.');
+
+    preview.onload = () => {
+      result.classList.add('show');
+      status('Image found successfully.', 'info');
+    };
+    preview.onerror = () => {
+      result.classList.remove('show');
+      status('The image URL was found, but the image host blocked previewing it.', 'error');
+    };
+    preview.src = data.imageUrl;
+    resolvedUrl.href = data.imageUrl;
+    resolvedUrl.textContent = data.imageUrl;
+    openBtn.href = data.imageUrl;
+    downloadBtn.href = data.imageUrl;
+    result.classList.add('show');
+  } catch(err) {
+    status(err.message || 'Something went wrong.', 'error');
+  } finally {
+    findBtn.disabled = false;
+    findBtn.textContent = 'Find Image';
+  }
+}
+
+findBtn.addEventListener('click', findImage);
+input.addEventListener('keydown', e => { if(e.key === 'Enter') findImage(); });
+copyBtn.addEventListener('click', async () => {
+  const value = resolvedUrl.textContent;
+  if(!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => copyBtn.textContent = 'Copy Image URL', 1400);
+  } catch { status('Copy failed. Please copy the URL manually.', 'error'); }
+});
+document.querySelectorAll('[data-url]').forEach(el => {
+  el.addEventListener('click', () => { input.value = el.dataset.url; findImage(); });
+});
+</script>
+</body>
+</html>
