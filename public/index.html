@@ -1,146 +1,1284 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Universal Image Viewer</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
   <style>
-    :root{--bg:#0b1020;--card:#121a2e;--card2:#18233b;--text:#f4f7ff;--muted:#9ba8c2;--accent:#7c5cff;--border:#2a3857;--danger:#ff6b81}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at top,#1b2750 0,#0b1020 45%);color:var(--text);display:flex;justify-content:center;padding:24px}
-    .wrap{width:100%;max-width:850px}
-    header{text-align:center;padding:35px 12px 25px}
-    .logo{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#8d6bff,#4c8dff);display:grid;place-items:center;margin:0 auto 18px;font-size:30px;box-shadow:0 12px 35px #5e55ff40}
-    h1{margin:0;font-size:clamp(28px,5vw,46px);letter-spacing:-1.5px}
-    .sub{color:var(--muted);margin:12px auto 0;max-width:580px;line-height:1.6}
-    .panel{background:rgba(18,26,46,.92);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:0 20px 70px #0005}
-    .form{display:flex;gap:10px}
-    input{flex:1;min-width:0;background:#0c1427;border:1px solid var(--border);border-radius:14px;color:var(--text);padding:16px;font-size:15px;outline:none}
-    input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #7c5cff25}
-    button{border:0;border-radius:14px;background:var(--accent);color:white;padding:0 24px;font-weight:700;font-size:15px;cursor:pointer;min-height:52px}
-    button:hover{filter:brightness(1.1)} button:disabled{opacity:.6;cursor:wait}
-    .examples{color:var(--muted);font-size:13px;margin:14px 2px 0;line-height:1.7}
-    .examples code{color:#c5baff;cursor:pointer}
-    .status{margin-top:18px;display:none;padding:13px 15px;border-radius:12px;font-size:14px}
-    .status.show{display:block}.status.error{background:#ff536f18;color:#ff9aaa;border:1px solid #ff536f40}.status.info{background:#6f8cff18;color:#b8c5ff;border:1px solid #6f8cff40}
-    .result{display:none;margin-top:22px}.result.show{display:block}
-    .preview{background:#080d18;border:1px solid var(--border);border-radius:18px;min-height:220px;display:grid;place-items:center;overflow:hidden}
-    .preview img{display:block;max-width:100%;max-height:650px;object-fit:contain}
-    .meta{margin-top:14px;background:var(--card2);border-radius:15px;padding:14px;word-break:break-all}
-    .meta small{display:block;color:var(--muted);margin-bottom:6px}.meta a{color:#bfb2ff;text-decoration:none}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .actions a,.actions button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;min-height:46px;padding:0 17px;border-radius:12px;font-weight:700;font-size:14px}
-    .actions a{background:#263452;color:white}.actions button{background:#263452}
-    .footer{text-align:center;color:#65728d;font-size:12px;margin:22px 0}
-    @media(max-width:600px){body{padding:12px}.panel{padding:15px;border-radius:19px}.form{flex-direction:column}button{width:100%}.actions>*{flex:1}}
+    :root {
+      --bg: #030b22;
+      --bg-secondary: #071333;
+      --card: rgba(10, 28, 64, 0.72);
+      --card-light: rgba(20, 44, 88, 0.58);
+      --border: rgba(55, 159, 255, 0.34);
+      --text: #f5f8ff;
+      --muted: #a9b9d8;
+      --blue: #159eff;
+      --purple: #9747ff;
+      --green: #19d98b;
+      --pink: #ff4d91;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 15%, rgba(21, 110, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 85% 25%, rgba(142, 54, 255, 0.2), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(21, 110, 255, 0.1), transparent 35%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 0;
+      border-bottom: 1px solid rgba(75, 139, 235, 0.2);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border: 2px solid #fff;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #173c7e, #101c4c);
+      box-shadow: 0 0 24px rgba(38, 151, 255, 0.22);
+      font-size: 29px;
+    }
+
+    .brand-title {
+      font-size: clamp(20px, 3vw, 29px);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .brand-title span {
+      background: linear-gradient(90deg, #13a7ff, #a65aff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .developer-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 14px 9px 9px;
+      border: 1px solid rgba(20, 160, 255, 0.8);
+      border-radius: 19px;
+      background: rgba(4, 20, 53, 0.65);
+      box-shadow: inset 0 0 25px rgba(16, 119, 255, 0.06);
+    }
+
+    .developer-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #1677e8, #6336cc);
+      font-size: 22px;
+      border: 2px solid rgba(255,255,255,0.18);
+    }
+
+    .developer-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .developer-name {
+      color: #21c4ff;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .developer-arrow {
+      color: #35aaff;
+      font-size: 20px;
+      margin-left: 7px;
+    }
+
+    /* Hero */
+
+    .hero {
+      text-align: center;
+      padding: 52px 0 34px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 20px;
+      border: 1px solid rgba(104, 80, 255, 0.9);
+      border-radius: 999px;
+      color: #d5caff;
+      background: linear-gradient(
+        90deg,
+        rgba(14, 126, 255, 0.13),
+        rgba(151, 57, 255, 0.2)
+      );
+      box-shadow: 0 0 25px rgba(113, 60, 255, 0.12);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .hero h1 {
+      margin-top: 25px;
+      font-size: clamp(35px, 6vw, 66px);
+      line-height: 1.08;
+      letter-spacing: -2.7px;
+      font-weight: 800;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, #16b2ff 5%, #467dff 48%, #b24eff 95%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-description {
+      max-width: 700px;
+      margin: 20px auto 0;
+      color: #b7c6e1;
+      font-size: clamp(14px, 2vw, 17px);
+      line-height: 1.7;
+    }
+
+    .hero-features {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 22px;
+      margin-top: 18px;
+      color: #b9c7e2;
+      font-size: 14px;
+    }
+
+    .hero-features span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .hero-features span:nth-child(1) {
+      color: #ffc72c;
+    }
+
+    .hero-features span:nth-child(2) {
+      color: #25e894;
+    }
+
+    .hero-features span:nth-child(3) {
+      color: #32baff;
+    }
+
+    .hero-features span:nth-child(4) {
+      color: #ff5b9d;
+    }
+
+    /* Search */
+
+    .search-section {
+      padding: 18px;
+      border: 1px solid rgba(23, 145, 255, 0.55);
+      border-radius: 26px;
+      background: linear-gradient(
+        135deg,
+        rgba(8, 36, 83, 0.83),
+        rgba(17, 23, 73, 0.72)
+      );
+      box-shadow: var(--shadow), inset 0 0 35px rgba(31, 105, 255, 0.06);
+    }
+
+    .search-form {
+      display: flex;
+      align-items: stretch;
+      gap: 14px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 26px;
+      color: #2268b8;
+      pointer-events: none;
+    }
+
+    .url-input {
+      width: 100%;
+      height: 68px;
+      border: 1px solid rgba(161, 195, 255, 0.25);
+      border-radius: 18px;
+      outline: none;
+      padding: 0 22px 0 62px;
+      color: #12284c;
+      background: linear-gradient(135deg, #f4f8ff, #cbdcf4);
+      font-size: 16px;
+      transition: 0.25s ease;
+    }
+
+    .url-input::placeholder {
+      color: #7086aa;
+    }
+
+    .url-input:focus {
+      border-color: #2aaaff;
+      box-shadow: 0 0 0 4px rgba(25, 157, 255, 0.12);
+    }
+
+    .find-button {
+      min-width: 230px;
+      border: 0;
+      border-radius: 18px;
+      color: white;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 800;
+      background: linear-gradient(100deg, #168dff, #8c35f5);
+      box-shadow: 0 8px 25px rgba(69, 73, 255, 0.28);
+      transition: 0.25s ease;
+    }
+
+    .find-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(69, 73, 255, 0.4);
+    }
+
+    .find-button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+      transform: none;
+    }
+
+    .button-content {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 11px;
+    }
+
+    .examples {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .examples-title {
+      color: #70a8e9;
+      font-size: 13px;
+      margin-bottom: 13px;
+    }
+
+    .example-list {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .example-button {
+      cursor: pointer;
+      border: 1px solid rgba(92, 101, 255, 0.7);
+      border-radius: 12px;
+      padding: 11px 16px;
+      color: #dce7ff;
+      background: rgba(15, 35, 78, 0.8);
+      font-size: 13px;
+      transition: 0.2s ease;
+    }
+
+    .example-button:hover {
+      border-color: #35b8ff;
+      background: rgba(24, 59, 117, 0.9);
+    }
+
+    /* Messages */
+
+    .message {
+      display: none;
+      margin-top: 22px;
+      padding: 16px 20px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.error {
+      color: #ffb8c4;
+      border: 1px solid rgba(255, 77, 112, 0.45);
+      background: rgba(110, 15, 43, 0.3);
+    }
+
+    .message.loading {
+      color: #a9d9ff;
+      border: 1px solid rgba(50, 164, 255, 0.4);
+      background: rgba(15, 74, 130, 0.25);
+    }
+
+    /* Result */
+
+    .result-card {
+      display: none;
+      margin-top: 24px;
+      padding: 22px;
+      border: 1px solid rgba(44, 125, 230, 0.48);
+      border-radius: 25px;
+      background: linear-gradient(
+        135deg,
+        rgba(10, 36, 76, 0.8),
+        rgba(8, 25, 58, 0.78)
+      );
+      box-shadow: var(--shadow);
+    }
+
+    .result-card.show {
+      display: block;
+      animation: resultAppear 0.45s ease both;
+    }
+
+    @keyframes resultAppear {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .success-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .success-icon {
+      width: 58px;
+      height: 58px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      font-size: 31px;
+      background: linear-gradient(135deg, #0fc979, #0a9e70);
+      box-shadow: 0 0 25px rgba(0, 219, 142, 0.2);
+    }
+
+    .success-title {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .success-subtitle {
+      color: #aabbd9;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    .source-badge {
+      flex-shrink: 0;
+      padding: 11px 17px;
+      border-radius: 13px;
+      color: #23e7a1;
+      background: rgba(0, 160, 105, 0.16);
+      border: 1px solid rgba(0, 219, 142, 0.18);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .preview-wrapper {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 19px;
+      border: 1px solid rgba(92, 157, 255, 0.28);
+      background: #020817;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
+    }
+
+    .preview-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 760px;
+      object-fit: contain;
+      background: #020817;
+    }
+
+    .download-button {
+      width: 100%;
+      min-height: 66px;
+      margin-top: 18px;
+      border: 0;
+      border-radius: 17px;
+      cursor: pointer;
+      color: white;
+      font-size: 17px;
+      font-weight: 800;
+      background: linear-gradient(100deg, #129cff, #9340f3);
+      box-shadow: 0 10px 28px rgba(63, 84, 255, 0.25);
+      transition: 0.25s ease;
+    }
+
+    .download-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(63, 84, 255, 0.4);
+    }
+
+    .download-button span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    /* Features */
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .feature-card {
+      min-height: 122px;
+      padding: 20px 17px;
+      border: 1px solid rgba(42, 123, 224, 0.35);
+      border-radius: 19px;
+      background: rgba(8, 30, 67, 0.66);
+      transition: 0.25s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(47, 163, 255, 0.65);
+    }
+
+    .feature-icon {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 22px;
+      margin-bottom: 12px;
+      background: rgba(20, 103, 205, 0.2);
+    }
+
+    .feature-card:nth-child(1) .feature-icon {
+      background: rgba(255, 190, 0, 0.13);
+    }
+
+    .feature-card:nth-child(2) .feature-icon {
+      background: rgba(0, 224, 145, 0.13);
+    }
+
+    .feature-card:nth-child(3) .feature-icon {
+      background: rgba(0, 166, 255, 0.13);
+    }
+
+    .feature-card:nth-child(4) .feature-icon {
+      background: rgba(255, 55, 132, 0.13);
+    }
+
+    .feature-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .feature-text {
+      color: #91a8ce;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Footer */
+
+    .footer {
+      text-align: center;
+      padding: 58px 0 35px;
+      position: relative;
+    }
+
+    .footer::before {
+      content: "";
+      position: absolute;
+      left: -20vw;
+      right: -20vw;
+      bottom: 0;
+      height: 170px;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse at 25% 100%, rgba(22, 67, 204, 0.2), transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(132, 34, 229, 0.16), transparent 50%);
+      border-top: 1px solid rgba(54, 95, 255, 0.1);
+    }
+
+    .footer-message {
+      color: #aab8d4;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .footer-developer {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .footer-developer a {
+      color: #22baff;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .footer-tagline {
+      color: #8fa5c9;
+      font-size: 13px;
+      margin-top: 15px;
+      letter-spacing: 0.3px;
+    }
+
+    .footer-tagline span {
+      margin: 0 8px;
+      color: #49658d;
+    }
+
+    .copyright {
+      color: #536d96;
+      font-size: 11px;
+      margin-top: 20px;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 800px) {
+      .header {
+        align-items: flex-start;
+      }
+
+      .developer-card {
+        padding: 7px 10px 7px 7px;
+      }
+
+      .developer-avatar {
+        width: 39px;
+        height: 39px;
+        font-size: 18px;
+      }
+
+      .developer-name {
+        font-size: 11px;
+      }
+
+      .developer-label {
+        font-size: 10px;
+      }
+
+      .developer-arrow {
+        font-size: 16px;
+      }
+
+      .brand-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 24px;
+      }
+
+      .hero {
+        padding-top: 40px;
+      }
+
+      .search-form {
+        flex-direction: column;
+      }
+
+      .find-button {
+        width: 100%;
+        min-height: 62px;
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .result-header {
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        width: min(100% - 20px, 1180px);
+      }
+
+      .header {
+        gap: 10px;
+      }
+
+      .brand {
+        gap: 9px;
+      }
+
+      .brand-title {
+        font-size: 17px;
+        letter-spacing: -0.8px;
+      }
+
+      .brand-subtitle {
+        font-size: 9px;
+      }
+
+      .brand-icon {
+        width: 39px;
+        height: 39px;
+        border-radius: 11px;
+        font-size: 20px;
+      }
+
+      .developer-card {
+        border-radius: 13px;
+      }
+
+      .developer-avatar {
+        display: none;
+      }
+
+      .developer-name {
+        font-size: 10px;
+      }
+
+      .developer-label {
+        font-size: 9px;
+      }
+
+      .hero {
+        padding: 36px 0 25px;
+      }
+
+      .hero h1 {
+        font-size: 38px;
+        letter-spacing: -1.8px;
+      }
+
+      .hero-description {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .hero-features {
+        gap: 12px;
+        font-size: 11px;
+      }
+
+      .search-section {
+        padding: 12px;
+        border-radius: 20px;
+      }
+
+      .url-input {
+        height: 60px;
+        font-size: 13px;
+        padding-left: 51px;
+      }
+
+      .input-icon {
+        left: 17px;
+        font-size: 22px;
+      }
+
+      .find-button {
+        min-height: 58px;
+        font-size: 15px;
+      }
+
+      .example-button {
+        width: 100%;
+        font-size: 11px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .result-card {
+        padding: 13px;
+        border-radius: 20px;
+      }
+
+      .result-header {
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .success-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 25px;
+      }
+
+      .success-title {
+        font-size: 16px;
+      }
+
+      .success-subtitle {
+        font-size: 12px;
+      }
+
+      .source-badge {
+        font-size: 11px;
+        padding: 9px 13px;
+      }
+
+      .download-button {
+        min-height: 58px;
+        font-size: 14px;
+      }
+
+      .feature-grid {
+        gap: 10px;
+      }
+
+      .feature-card {
+        min-height: 118px;
+        padding: 15px 12px;
+      }
+
+      .feature-title {
+        font-size: 12px;
+      }
+
+      .feature-text {
+        font-size: 10px;
+      }
+
+      .footer {
+        padding-top: 45px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <main class="wrap">
-    <header>
-      <div class="logo">🖼️</div>
-      <h1>Universal Image Viewer</h1>
-      <p class="sub">Paste an image-hosting link from ImgBB, Imgur, or a direct image URL to preview the image instantly.</p>
+  <main class="page">
+
+    <!-- Header -->
+    <header class="header">
+      <a href="/" class="brand">
+        <div class="brand-icon">▧</div>
+
+        <div>
+          <div class="brand-title">
+            Universal <span>Image Viewer</span>
+          </div>
+          <div class="brand-subtitle">
+            Find · Preview · Download · Explore
+          </div>
+        </div>
+      </a>
+
+      <a
+        class="developer-card"
+        href="https://www.facebook.com/share/1C5rZCenP4/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div class="developer-avatar">👨🏻‍💻</div>
+
+        <div>
+          <div class="developer-label">Developer</div>
+          <div class="developer-name">SHITHIL AHMED</div>
+        </div>
+
+        <div class="developer-arrow">↗</div>
+      </a>
     </header>
 
-    <section class="panel">
-      <div class="form">
-        <input id="urlInput" type="url" placeholder="https://ibb.co/... or https://imgur.com/..." autocomplete="off" />
-        <button id="findBtn">Find Image</button>
-      </div>
-      <div class="examples">
-        Try:
-        <code data-url="https://ibb.co/Jj5ChKhJ">ImgBB link</code>
-        ·
-        <code data-url="https://imgur.com/ugTZhc7">Imgur link</code>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">
+        🔍 <span>One Link, Real Image</span>
       </div>
 
-      <div id="status" class="status"></div>
+      <h1>
+        Universal <span>Image Viewer</span>
+      </h1>
 
-      <section id="result" class="result">
-        <div class="preview"><img id="imagePreview" alt="Resolved image preview" /></div>
-        <div class="meta">
-          <small>Resolved image URL</small>
-          <a id="resolvedUrl" target="_blank" rel="noopener noreferrer"></a>
-        </div>
-        <div class="actions">
-          <a id="openBtn" target="_blank" rel="noopener noreferrer">Open Original</a>
-          <a id="downloadBtn" download>Download Image</a>
-          <button id="copyBtn" type="button">Copy Image URL</button>
-        </div>
-      </section>
+      <p class="hero-description">
+        Paste any ImgBB or Imgur link and instantly view,
+        download and get the direct image.
+      </p>
+
+      <div class="hero-features">
+        <span>⚡ Fast</span>
+        <span>🛡 Free</span>
+        <span>⚙ Simple</span>
+        <span>♥ Works Everywhere</span>
+      </div>
     </section>
-    <div class="footer">Supports public images only. Private, deleted, expired, or protected images may not resolve.</div>
+
+    <!-- Search Section -->
+    <section class="search-section">
+      <form class="search-form" id="searchForm">
+        <div class="input-wrapper">
+          <span class="input-icon">🔗</span>
+
+          <input
+            type="url"
+            id="urlInput"
+            class="url-input"
+            placeholder="Paste ImgBB or Imgur link here..."
+            autocomplete="off"
+            required
+          />
+        </div>
+
+        <button type="submit" class="find-button" id="findButton">
+          <span class="button-content">
+            <span>⌕</span>
+            <span id="findButtonText">Find Image</span>
+            <span>→</span>
+          </span>
+        </button>
+      </form>
+
+      <div class="examples">
+        <div class="examples-title">Try these examples:</div>
+
+        <div class="example-list">
+          <button
+            type="button"
+            class="example-button"
+            data-url="https://ibb.co/Jj5ChKhJ"
+          >
+            🔗 https://ibb.co/Jj5ChKhJ
+          </button>
+
+          <button
+            type="button"
+            class="example-button"
+            data-url="https://imgur.com/ugTZhc7"
+          >
+            🔗 https://imgur.com/ugTZhc7
+          </button>
+        </div>
+      </div>
+
+      <div class="message loading" id="loadingMessage">
+        Finding your image, please wait...
+      </div>
+
+      <div class="message error" id="errorMessage"></div>
+    </section>
+
+    <!-- Result -->
+    <section class="result-card" id="resultCard">
+      <div class="result-header">
+        <div class="success-info">
+          <div class="success-icon">✓</div>
+
+          <div>
+            <div class="success-title">Image found successfully!</div>
+            <div class="success-subtitle">
+              Here is your image preview:
+            </div>
+          </div>
+        </div>
+
+        <div class="source-badge" id="sourceBadge">
+          🔗 Source: Image Host
+        </div>
+      </div>
+
+      <div class="preview-wrapper">
+        <img
+          id="previewImage"
+          class="preview-image"
+          alt="Resolved image preview"
+        />
+      </div>
+
+      <button class="download-button" id="downloadButton">
+        <span>
+          <span>⇩</span>
+          <span>Download Image</span>
+        </span>
+      </button>
+    </section>
+
+    <!-- Features -->
+    <section class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Super Fast</div>
+        <div class="feature-text">Get images instantly</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🛡</div>
+        <div class="feature-title">Privacy Friendly</div>
+        <div class="feature-text">We don't store your links</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">▣</div>
+        <div class="feature-title">Mobile Ready</div>
+        <div class="feature-text">Works on all devices</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">♥</div>
+        <div class="feature-title">100% Free</div>
+        <div class="feature-text">No registration needed</div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-message">
+        Made with ❤️ for everyone
+      </div>
+
+      <div class="footer-developer">
+        Developer —
+        <a
+          href="https://www.facebook.com/share/1C5rZCenP4/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          SHITHIL AHMED ↗
+        </a>
+      </div>
+
+      <div class="footer-tagline">
+        Simple Tools <span>•</span>
+        Better Internet <span>•</span>
+        Brighter Tomorrow
+      </div>
+
+      <div class="copyright">
+        © 2026 Universal Image Viewer. All rights reserved.
+      </div>
+    </footer>
+
   </main>
 
-<script>
-const input = document.getElementById('urlInput');
-const findBtn = document.getElementById('findBtn');
-const statusBox = document.getElementById('status');
-const result = document.getElementById('result');
-const preview = document.getElementById('imagePreview');
-const resolvedUrl = document.getElementById('resolvedUrl');
-const openBtn = document.getElementById('openBtn');
-const downloadBtn = document.getElementById('downloadBtn');
-const copyBtn = document.getElementById('copyBtn');
+  <script>
+    const searchForm = document.getElementById("searchForm");
+    const urlInput = document.getElementById("urlInput");
+    const findButton = document.getElementById("findButton");
+    const findButtonText = document.getElementById("findButtonText");
 
-function status(message, type='info'){
-  statusBox.textContent = message;
-  statusBox.className = 'status show ' + type;
-}
-function clearResult(){ result.classList.remove('show'); preview.removeAttribute('src'); }
+    const loadingMessage = document.getElementById("loadingMessage");
+    const errorMessage = document.getElementById("errorMessage");
 
-async function findImage(){
-  const url = input.value.trim();
-  clearResult();
-  if(!url){ status('Please enter an image URL.', 'error'); return; }
-  try { new URL(url); } catch { status('Please enter a valid URL.', 'error'); return; }
+    const resultCard = document.getElementById("resultCard");
+    const previewImage = document.getElementById("previewImage");
+    const sourceBadge = document.getElementById("sourceBadge");
+    const downloadButton = document.getElementById("downloadButton");
 
-  findBtn.disabled = true;
-  findBtn.textContent = 'Finding...';
-  status('Resolving image URL...', 'info');
+    let currentImageUrl = "";
 
-  try {
-    const response = await fetch('/api/resolve?url=' + encodeURIComponent(url));
-    const data = await response.json();
-    if(!response.ok || !data.success) throw new Error(data.error || 'Image could not be resolved.');
+    function showLoading(show) {
+      loadingMessage.classList.toggle("show", show);
+    }
 
-    preview.onload = () => {
-      result.classList.add('show');
-      status('Image found successfully.', 'info');
-    };
-    preview.onerror = () => {
-      result.classList.remove('show');
-      status('The image URL was found, but the image host blocked previewing it.', 'error');
-    };
-    preview.src = data.imageUrl;
-    resolvedUrl.href = data.imageUrl;
-    resolvedUrl.textContent = data.imageUrl;
-    openBtn.href = data.imageUrl;
-    downloadBtn.href = data.imageUrl;
-    result.classList.add('show');
-  } catch(err) {
-    status(err.message || 'Something went wrong.', 'error');
-  } finally {
-    findBtn.disabled = false;
-    findBtn.textContent = 'Find Image';
-  }
-}
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add("show");
+    }
 
-findBtn.addEventListener('click', findImage);
-input.addEventListener('keydown', e => { if(e.key === 'Enter') findImage(); });
-copyBtn.addEventListener('click', async () => {
-  const value = resolvedUrl.textContent;
-  if(!value) return;
-  try {
-    await navigator.clipboard.writeText(value);
-    copyBtn.textContent = 'Copied!';
-    setTimeout(() => copyBtn.textContent = 'Copy Image URL', 1400);
-  } catch { status('Copy failed. Please copy the URL manually.', 'error'); }
-});
-document.querySelectorAll('[data-url]').forEach(el => {
-  el.addEventListener('click', () => { input.value = el.dataset.url; findImage(); });
-});
-</script>
+    function hideError() {
+      errorMessage.textContent = "";
+      errorMessage.classList.remove("show");
+    }
+
+    function setSearching(searching) {
+      findButton.disabled = searching;
+      findButtonText.textContent = searching
+        ? "Finding..."
+        : "Find Image";
+    }
+
+    function detectSource(url) {
+      const lowerUrl = url.toLowerCase();
+
+      if (
+        lowerUrl.includes("ibb.co") ||
+        lowerUrl.includes("ibb.com") ||
+        lowerUrl.includes("i.ibb.co")
+      ) {
+        return "ImgBB";
+      }
+
+      if (
+        lowerUrl.includes("imgur.com") ||
+        lowerUrl.includes("i.imgur.com")
+      ) {
+        return "Imgur";
+      }
+
+      return "Image Host";
+    }
+
+    /*
+      This function connects to your existing backend.
+
+      Your backend endpoint should be:
+      GET /api/resolve?url=IMAGE_PAGE_URL
+
+      Example:
+      /api/resolve?url=https://ibb.co/Jj5ChKhJ
+    */
+    async function resolveImageUrl(pageUrl) {
+      const response = await fetch(
+        "/api/resolve?url=" + encodeURIComponent(pageUrl),
+        {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          }
+        }
+      );
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error("Server returned an invalid response.");
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          data.error ||
+          "Unable to resolve this image link."
+        );
+      }
+
+      /*
+        Supports common backend response formats:
+        { imageUrl: "..." }
+        { directUrl: "..." }
+        { url: "..." }
+        { image: "..." }
+      */
+      const directUrl =
+        data.imageUrl ||
+        data.directUrl ||
+        data.url ||
+        data.image ||
+        data.result?.imageUrl ||
+        data.result?.directUrl ||
+        data.result?.url;
+
+      if (!directUrl || typeof directUrl !== "string") {
+        throw new Error("Direct image URL was not found.");
+      }
+
+      return directUrl;
+    }
+
+    async function searchImage(pageUrl) {
+      hideError();
+      resultCard.classList.remove("show");
+      showLoading(true);
+      setSearching(true);
+
+      try {
+        const directImageUrl = await resolveImageUrl(pageUrl);
+
+        currentImageUrl = directImageUrl;
+
+        previewImage.onload = function () {
+          resultCard.classList.add("show");
+        };
+
+        previewImage.onerror = function () {
+          resultCard.classList.remove("show");
+          showError(
+            "The image could not be loaded. The direct image link may have expired."
+          );
+        };
+
+        previewImage.src = directImageUrl;
+        sourceBadge.textContent = "🔗 Source: " + detectSource(pageUrl);
+
+        /*
+          If the image loads successfully, the result card remains visible.
+          The image is intentionally displayed large.
+        */
+        resultCard.classList.add("show");
+
+        setTimeout(() => {
+          resultCard.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }, 150);
+
+      } catch (error) {
+        showError(
+          error.message ||
+          "Something went wrong. Please check the link and try again."
+        );
+      } finally {
+        showLoading(false);
+        setSearching(false);
+      }
+    }
+
+    searchForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const pageUrl = urlInput.value.trim();
+
+      if (!pageUrl) {
+        showError("Please paste an ImgBB or Imgur link.");
+        return;
+      }
+
+      try {
+        const parsedUrl = new URL(pageUrl);
+
+        const supported =
+          parsedUrl.hostname.includes("ibb.co") ||
+          parsedUrl.hostname.includes("ibb.com") ||
+          parsedUrl.hostname.includes("imgur.com");
+
+        if (!supported) {
+          showError("Please use a valid ImgBB or Imgur link.");
+          return;
+        }
+      } catch (error) {
+        showError("Please enter a valid URL.");
+        return;
+      }
+
+      searchImage(pageUrl);
+    });
+
+    document.querySelectorAll(".example-button").forEach((button) => {
+      button.addEventListener("click", function () {
+        const exampleUrl = this.dataset.url;
+        urlInput.value = exampleUrl;
+        searchImage(exampleUrl);
+      });
+    });
+
+    downloadButton.addEventListener("click", function () {
+      if (!currentImageUrl) {
+        showError("No image is available for download.");
+        return;
+      }
+
+      /*
+        Opens the direct image in a new tab with download intent.
+        This works even when the image host blocks cross-origin downloads.
+      */
+      const downloadLink = document.createElement("a");
+      downloadLink.href = currentImageUrl;
+      downloadLink.target = "_blank";
+      downloadLink.rel = "noopener noreferrer";
+      downloadLink.download = "universal-image.jpg";
+
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    });
+  </script>
 </body>
 </html>
