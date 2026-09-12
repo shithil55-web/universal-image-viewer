@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Universal Image Viewer</title>
+  <title>img viewer</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -160,6 +160,18 @@
       font-weight: 800;
       text-decoration: underline;
       text-underline-offset: 3px;
+      white-space: nowrap;
+      animation: developerColorChange 1s infinite;
+      transition: color 0.3s ease;
+    }
+
+    @keyframes developerColorChange {
+      0% { color: #21c4ff; }
+      20% { color: #ff4d91; }
+      40% { color: #a65aff; }
+      60% { color: #19d98b; }
+      80% { color: #ffc72c; }
+      100% { color: #21c4ff; }
     }
 
     .developer-arrow {
@@ -623,6 +635,8 @@
       color: #22baff;
       text-decoration: underline;
       text-underline-offset: 4px;
+      animation: developerColorChange 1s infinite;
+      transition: color 0.3s ease;
     }
 
     .footer-tagline {
@@ -861,7 +875,7 @@
 
         <div>
           <div class="brand-title">
-            Universal <span>Image Viewer</span>
+            <span>img viewer</span>
           </div>
           <div class="brand-subtitle">
             Find · Preview · Download · Explore
@@ -893,7 +907,7 @@
       </div>
 
       <h1>
-        Universal <span>Image Viewer</span>
+        <span>img viewer</span>
       </h1>
 
       <p class="hero-description">
@@ -1049,7 +1063,7 @@
       </div>
 
       <div class="copyright">
-        © 2026 Universal Image Viewer. All rights reserved.
+        © 2026 img viewer. All rights reserved.
       </div>
     </footer>
 
